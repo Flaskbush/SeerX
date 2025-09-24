@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/Flaskbush/SeerX/exploits"
-	"github.com/Flaskbush/SeerX/exploits/vsftpd"
+	"github.com/flaskbush/seerx/exploits"
+	"github.com/flaskbush/seerx/exploits/vsftpd"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 	manager := exploits.NewExploitManager()
 
 	// Registers our exploits
-	manager.Register(vsftpd.NewExploitManager("21", "6200"))
+	manager.Register(vsftpd.NewVsftpdExploit("21", "6200"))
 
 	// Run the exploit against the target
 	err := manager.RunExploit(*exploitName, *target)
