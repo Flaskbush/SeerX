@@ -40,7 +40,7 @@ func NewServer(dbPath string) (*Server, error) {
         )
     `)
 	if err != nil {
-		return nil, fmt.Errorf("échec création table: %v", err)
+		return nil, fmt.Errorf("Table creation failed: %v", err)
 	}
 
 	server := &Server{
@@ -112,6 +112,6 @@ func (s *Server) Start(addr string) error {
 	router.HandleFunc("/exploit/{name}", s.HandleExploit).Methods("POST")
 	router.HandleFunc("/scan", s.HandleScan).Methods("GET")
 
-	log.Printf("Serveur C2 démarré sur %s", addr)
+	log.Printf("C2 server started on %s", addr)
 	return http.ListenAndServe(addr, router)
 }
