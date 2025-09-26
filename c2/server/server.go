@@ -14,7 +14,7 @@ import (
 	"github.com/flaskbush/seerx/exploits/vsftpd"
 	"github.com/flaskbush/seerx/recon"
 	"github.com/gorilla/mux"
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Server struct {
