@@ -25,13 +25,14 @@ type Server struct {
 	portScanner *recon.PortScanner
 }
 
+// Database
 func NewServer(dbPath string) (*Server, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("échec ouverture DB: %v", err)
 	}
 
-	// Créer table agents
+	// Init agent table
 	_, err = db.Exec(`
         CREATE TABLE IF NOT EXISTS agents (
             id TEXT PRIMARY KEY,
@@ -40,7 +41,7 @@ func NewServer(dbPath string) (*Server, error) {
         )
     `)
 	if err != nil {
-		return nil, fmt.Errorf("Table creation failed: %v", err)
+		return nil, fmt.Errorf("table creation failed: %v", err)
 	}
 
 	server := &Server{
@@ -67,6 +68,7 @@ func (s *Server) RegisterAgent(agent *models.Agent) error {
 	return err
 }
 
+// Http API
 func (s *Server) HandleBeacon(w http.ResponseWriter, r *http.Request) {
 	var agent models.Agent
 	if err := json.NewDecoder(r.Body).Decode(&agent); err != nil {
@@ -84,6 +86,7 @@ func (s *Server) HandleBeacon(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// curl -X POST "http://localhost:8080/exploit/vsftpd?target=192.168.88.112"
 func (s *Server) HandleExploit(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	exploitName := vars["name"]
@@ -96,6 +99,7 @@ func (s *Server) HandleExploit(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Exploit %s executed on %s", exploitName, target)
 }
 
+// curl -s "http://localhost:8080/scan?target=192.168.88.112" | jq '.'
 func (s *Server) HandleScan(w http.ResponseWriter, r *http.Request) {
 	target := r.URL.Query().Get("target")
 	ports, err := s.portScanner.Scan(target, "1-1024")
@@ -104,6 +108,21 @@ func (s *Server) HandleScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(ports)
+}
+
+// Getter methods
+func (s *Server) GetPortScanner() *recon.PortScanner {
+	return s.portScanner
+}
+
+func (s *Server) GetExploitManager() *exploits.ExploitManager {
+	return s.exploitMgr
+}
+
+func (s *Server) GetAgents() map[string]*models.Agent {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.agents
 }
 
 func (s *Server) Start(addr string) error {
